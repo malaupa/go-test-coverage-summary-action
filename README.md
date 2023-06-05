@@ -22,7 +22,7 @@ Used to comment pull requests. Defaults to `${{ github.token }}`.
   shell: bash
 - name: Process results
   if: always()
-  uses: malaupa/go-test-coverage-summary-action@v0.2.0
+  uses: malaupa/go-test-coverage-summary-action@v1.0.0
   with:
     test_results: "test.out"
     coverage_profile: "cover.out"
