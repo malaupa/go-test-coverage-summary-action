@@ -28,3 +28,7 @@ Used to comment pull requests. Defaults to `${{ github.token }}`.
     coverage_profile: "cover.out"
     with_archive: true
 ```
+
+## Example Pull Request Comment
+
+![Screenshot](/screenshot.png)
