@@ -14,7 +14,7 @@ fi
 if [[ -f "$GITHUB_WORKSPACE/$COVERAGE_PROFILE" ]] ; then
   echo "process coverage profile"
   PACKAGE=$(awk '$1 ~ /module/ { print $2 }' $GITHUB_WORKSPACE/go.mod)
-  awk -f $SCRIPT_DIR/coverage_summary.awk -v package="$PACKAGE" -v baseUrl="$BASE_URL" $GITHUB_WORKSPACE/$COVERAGE_PROFILE >> $SUMMARY_FILE
+  awk '{ gsub(/(\.[0-9]+,|\.[0-9]+ |:)/," "); print }' $GITHUB_WORKSPACE/$COVERAGE_PROFILE | sort -k1,1 -k2,2n | awk -f $SCRIPT_DIR/coverage_summary.awk -v package="$PACKAGE" -v baseUrl="$BASE_URL" >> $SUMMARY_FILE
 fi
 
 if [[ "$WITH_ARCHIVE" == "true" && -f "$GITHUB_WORKSPACE/$COVERAGE_PROFILE" ]] ; then

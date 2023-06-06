@@ -20,10 +20,14 @@ BEGIN {
   file = ""
 }
 $1 !~ /mode:/ {
-  if (match($1,"^"package"([^:]+):([0-9]+).[0-9]+,([0-9]+).[0-9]+",f)) {
+  if (match($1,"^"package"(.+)$",f)) {
     if (file != "" && file != f[1] ) {
+      # write file entry with coverage and uncovered lines
       fileCoverage = fileCovered/fileStatements*100
       if (lineStart != "" && lineEnd != "") {
+        if (uncoveredLines != "") {
+          uncoveredLines = uncoveredLines", "
+        }
         uncoveredLines = sprintf("%s[%s-%s](%s%s#L%s-L%s)", uncoveredLines, lineStart, lineEnd, baseUrl, file,  lineStart, lineEnd)
       }
       details = sprintf("%s|%s %.1f%|%s|%s|\n", details, bar(fileCoverage), fileCoverage, file, uncoveredLines)
@@ -32,27 +36,32 @@ $1 !~ /mode:/ {
       uncoveredLines = ""
       lineStart = ""
       lineEnd = ""
-    } 
-    file = f[1]
-    statements += $2
-    fileStatements += $2
-    if ($3 != "0") {
-      covered += $2
-      fileCovered += $2
-      next
-    } 
-    if (lineStart == "" && lineEnd == "") {
-      lineStart = f[2]
-      lineEnd = f[3]
-      next
     }
-    if (lineEnd+0 == f[2]+0 || lineEnd+1 == f[2]+0) {
-      lineEnd = f[3]
+    # start new file coverage measuring
+    file = f[1]
+    statements += $4
+    fileStatements += $4
+    if ($5 != "0") {
+      # covered lines
+      covered += $4
+      fileCovered += $4
+
+      if (lineStart != "" && lineEnd != "") {
+        if (uncoveredLines != "") {
+          uncoveredLines = uncoveredLines", "
+        }
+        uncoveredLines = sprintf("%s[%s-%s](%s%s#L%s-L%s)", uncoveredLines, lineStart, lineEnd, baseUrl, file,  lineStart, lineEnd)
+        lineStart = ""
+        lineEnd = ""
+      }
+
       next
     } 
-    uncoveredLines = sprintf("%s[%s-%s](%s%s#L%s-L%s), ", uncoveredLines, lineStart, lineEnd, baseUrl, file,  lineStart, lineEnd)
-    lineStart = f[2]
-    lineEnd = f[3]
+    # not covered lines
+    if (lineStart == "") {
+      lineStart = $2
+    }
+    lineEnd = $3
   }
 }
 END {
