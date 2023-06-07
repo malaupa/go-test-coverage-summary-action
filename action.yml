@@ -13,6 +13,9 @@ inputs:
   github_token:
     description: "Github token write pull request scope"
     default: "${{ github.token }}"
+  cleanup:
+    description: "Cleanup workspace"
+    default: "true"
 runs:
   using: "composite"
   steps:
@@ -32,3 +35,7 @@ runs:
         name: code-coverage-report
         path: coverage.html
         retention-days: 5
+    - name: Cleanup
+      if: inputs.cleanup == 'true'
+      run: ${{ github.action_path }}/cleanup.sh
+      shell: bash

@@ -5,21 +5,25 @@ set -e
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 BASE_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/$GITHUB_SHA"
 SUMMARY_FILE=summary.md
+PROCESS_COVERAGE_REPORT=coverage.html
 
 if [[ -f "$GITHUB_WORKSPACE/$TEST_RESULT_LOG" ]] ; then
   echo "process test results"
   awk -f $SCRIPT_DIR/test_summary.awk -v workspace="$GITHUB_WORKSPACE" -v baseUrl="$BASE_URL" $GITHUB_WORKSPACE/$TEST_RESULT_LOG >> $SUMMARY_FILE
+  echo "PROCESS_TEST_RESULT_LOG=$GITHUB_WORKSPACE/$TEST_RESULT_LOG" >> $GITHUB_ENV
 fi
 
 if [[ -f "$GITHUB_WORKSPACE/$COVERAGE_PROFILE" ]] ; then
   echo "process coverage profile"
   PACKAGE=$(awk '$1 ~ /module/ { print $2 }' $GITHUB_WORKSPACE/go.mod)
   awk '{ gsub(/(\.[0-9]+,|\.[0-9]+ |:)/," "); print }' $GITHUB_WORKSPACE/$COVERAGE_PROFILE | sort -k1,1 -k2,2n | awk -f $SCRIPT_DIR/coverage_summary.awk -v package="$PACKAGE" -v baseUrl="$BASE_URL" >> $SUMMARY_FILE
+  echo "PROCESS_COVERAGE_PROFILE=$GITHUB_WORKSPACE/$COVERAGE_PROFILE" >> $GITHUB_ENV
 fi
 
 if [[ "$WITH_ARCHIVE" == "true" && -f "$GITHUB_WORKSPACE/$COVERAGE_PROFILE" ]] ; then
   echo "generate html report"
-  go tool cover -html $GITHUB_WORKSPACE/$COVERAGE_PROFILE -o coverage.html
+  go tool cover -html $GITHUB_WORKSPACE/$COVERAGE_PROFILE -o $PROCESS_COVERAGE_REPORT
+  echo "PROCESS_COVERAGE_REPORT=$PROCESS_COVERAGE_REPORT" >> $GITHUB_ENV
 fi
 
 SUMMARY="$(cat $SUMMARY_FILE)"
@@ -69,3 +73,5 @@ if [[ -f "$SUMMARY_FILE" && "$SUMMARY" != "" ]] ; then
     fi
   fi
 fi
+
+echo "PROCESS_SUMMARY=$SUMMARY_FILE" >> $GITHUB_ENV
