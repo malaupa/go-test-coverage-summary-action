@@ -30,7 +30,7 @@ runs:
       shell: bash
     - name: Archive code coverage results
       if: inputs.with_archive == 'true'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: code-coverage-report
         path: coverage.html
